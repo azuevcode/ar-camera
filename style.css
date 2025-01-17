@@ -1,0 +1,23 @@
+body {
+  overflow: hidden;
+}
+
+.container {
+    display: grid;
+    row-gap: 40px;
+}
+
+#start {
+  width: fit-content;
+  z-index: 9999;
+}
+
+.scene {
+  position: relative;
+}
+
+#video, #canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
