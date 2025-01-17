@@ -4,8 +4,9 @@ const startButton = document.getElementById('start');
 const dataField = document.getElementById('data');
 
 startButton.addEventListener('click', async () => {
-    await startOrientation();
     subscribeOrientation();
+
+    alert('vvvv')
 
     await startCamera();
 });
@@ -20,24 +21,6 @@ async function startCamera() {
         video.srcObject = stream;
     } catch (e) {
         alert('Ошибка запуска камеры');
-    }
-}
-
-async function startOrientation () {
-    try {
-        if (typeof DeviceOrientationEvent === 'undefined') {
-            throw new Error('DeviceOrientationEvent не поддерживается')
-        }
-    
-        if (typeof DeviceOrientationEvent.requestPermission === "function") {
-            const permission = await DeviceOrientationEvent.requestPermission();
-    
-            if (permission !== 'granted') {
-                throw new Error('Нет доступа к DeviceOrientationEvent')
-            }
-        }
-    } catch (e) {
-        alert(e.message);
     }
 }
 
