@@ -4,20 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR camera</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js"
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">
+        <span>v8</span>
         <div>
           <button id="start">Start</button>
           <div id="data"></div>
+          <div id="point"></div>
         </div>
-        <div class="scene">
+        <div class="scene" id="scene">
           <video id="video" autoplay playsinline></video>
+          <canvas id="canvas"></canvas>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" type="module"></script>
 </body>
 </html>
