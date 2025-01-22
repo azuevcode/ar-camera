@@ -32,4 +32,5 @@ body {
 
 #video {
   height: 100%;
+  display: none;
 }

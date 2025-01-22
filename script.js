@@ -9,12 +9,14 @@ const debug = document.getElementById('debug');
 let camera, scene, renderer, point, sphere;
 let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
 
+let screenOrientation = { type: '', angle: 0 };
+
 startButton.addEventListener('click', async () => {
     /** 1. Запрос на получение данных об ориентации устройства (обязательно должен идти первым) */
     await startOrientation();
 
     /** 2. Запрос на доступ к камере устройства */
-    await startCamera();
+    // await startCamera();
 
     /** 3. Создание 3Д-сцены */
     initScene();
@@ -49,16 +51,14 @@ async function startOrientation () {
             }
         }
 
+        window.addEventListener( 'orientationchange', () => {
+            screenOrientation = window.screen.orientation || 0
+        });
+		
         window.addEventListener('deviceorientation', (event) => {
+            deviceOrientation = event;
+
             const { alpha, beta, gamma } = event;
-
-            const betaRad = THREE.MathUtils.degToRad(beta || 0);
-
-            deviceOrientation = {
-                alpha: THREE.MathUtils.degToRad(alpha || 0),
-                beta: betaRad,   // Наклон вверх/вниз
-                gamma: Math.abs(betaRad - Math.PI / 2) < 0.1 ? 0 : THREE.MathUtils.degToRad(gamma || 0), // Наклон влево/вправо
-            }
 
             debug.innerHTML = `
                 <p>alfa = ${alpha?.toFixed(2)}</p>
@@ -131,15 +131,45 @@ function createRenderer() {
 }
 
 function animate() {
-    const { alpha, beta, gamma } = deviceOrientation;
      
    // Обновляем ориентацию камеры с правильным порядком вращений
-   camera.setRotationFromEuler(new THREE.Euler(
-    beta + THREE.MathUtils.degToRad(90),   // Вверх-вниз (по X)
-    -gamma, // Влево-вправо (по Y)
-    alpha,                                     // Не используем Z
-    'YXZ'                                  // Порядок вращений
-));
+//    camera.setRotationFromEuler(new THREE.Euler(
+//         beta + THREE.MathUtils.degToRad(90),   // Вверх-вниз (по X)
+//         -gamma, // Влево-вправо (по Y)
+//         alpha,                                     // Не используем Z
+//         'YXZ'                                  // Порядок вращений
+//     ));
 
+    updateRotation();
+    
     renderer.render( scene, camera );
 }
+
+function updateRotation() {
+    const alpha = deviceOrientation.alpha ? THREE.MathUtils.degToRad(deviceOrientation.alpha) : 0; // Z
+
+    const beta = deviceOrientation.beta ? THREE.MathUtils.degToRad(deviceOrientation.beta) : 0; // X'
+
+    const gamma = deviceOrientation.gamma ? THREE.MathUtils.degToRad(deviceOrientation.gamma) : 0; // Y''
+
+    const orient = screenOrientation ? THREE.MathUtils.degToRad(screenOrientation) : 0; // O
+
+    setObjectQuaternion( camera.quaternion, alpha, beta, gamma, orient );
+}
+
+const _zee = new THREE.Vector3( 0, 0, 1 );
+const _euler = new THREE.Euler();
+const _q0 = new THREE.Quaternion();
+const _q1 = new THREE.Quaternion( - Math.sqrt( 0.5 ), 0, 0, Math.sqrt( 0.5 ) ); // - PI/2 around the x-axis
+
+
+function setObjectQuaternion( quaternion, alpha, beta, gamma, orient ) {
+    _euler.set( beta, alpha, - gamma, 'YXZ' ); // 'ZXY' for the device, but 'YXZ' for us
+
+    quaternion.setFromEuler( _euler ); // orient the device
+
+    quaternion.multiply( _q1 ); // camera looks out the back of the device, not the top
+
+    quaternion.multiply( _q0.setFromAxisAngle( _zee, - orient ) ); // adjust for screen orientation
+
+};
